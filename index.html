@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orange Pill ($PILL) - Wake Up.</title>
+    <link rel="icon" type="image/png" href="logo.png">
+
+    <style>
+        /* --- CSS VARIABLES & RESET --- */
+        :root {
+            --orange-primary: #FF9900; /* Bitcoin Orange */
+            --orange-glow: #ffae00;
+            --dark-bg: #050505;
+            --darker-bg: #000000;
+            --text-light: #ffffff;
+            --matrix-font: 'Courier New', Courier, monospace;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body, html {
+            height: 100%;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--dark-bg);
+            color: var(--text-light);
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+        }
+
+        /* --- TYPOGRAPHY & UTILS --- */
+        h1, h2, h3 {
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .highlight { color: var(--orange-primary); }
+        .glitch-text { position: relative; display: inline-block; }
+        
+        /* Basic Button Style */
+        .btn {
+            padding: 12px 30px;
+            border: 2px solid var(--orange-primary);
+            background: transparent;
+            color: var(--orange-primary);
+            font-weight: 700;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn:hover {
+            background: var(--orange-primary);
+            color: var(--dark-bg);
+            box-shadow: 0 0 20px var(--orange-glow);
+        }
+        .btn-glow {
+            background: var(--orange-primary);
+            color: var(--dark-bg);
+            box-shadow: 0 0 15px var(--orange-primary);
+        }
+        .btn-glow:hover {
+            box-shadow: 0 0 30px var(--orange-glow), 0 0 50px var(--orange-primary);
+        }
+
+        /* --- PRELOADER --- */
+        #preloader {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--darker-bg);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.8s ease-out, visibility 0.8s;
+        }
+        .preloader-logo {
+            width: 100px;
+            margin-bottom: 30px;
+            filter: drop-shadow(0 0 10px var(--orange-primary));
+            animation: pulse 2s infinite;
+        }
+        .progress-container {
+            width: 300px;
+            height: 4px;
+            background: #333;
+            border-radius: 2px;
+            overflow: hidden;
+            position: relative;
+        }
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: var(--orange-primary);
+            box-shadow: 0 0 10px var(--orange-primary);
+            transition: width 0.1s linear;
+        }
+        .loading-text {
+            margin-top: 15px;
+            font-family: var(--matrix-font);
+            font-size: 0.9rem;
+            color: var(--orange-primary);
+        }
+
+        /* --- BACKGROUND CANVAS (Matrix Effect) --- */
+        #matrix-canvas {
+            position: fixed;
+            top: 0; left: 0;
+            z-index: -1;
+            opacity: 0.15; /* Subtle background */
+        }
+
+        /* --- HEADER/NAV --- */
+        header {
+            position: fixed;
+            top: 0; width: 100%;
+            padding: 20px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+            background: rgba(5, 5, 5, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 153, 0, 0.1);
+        }
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+        .nav-logo img { height: 30px; margin-right: 10px; }
+
+        /* --- HERO SECTION --- */
+        #hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 100px 20px;
+            position: relative;
+        }
+        .hero-content {
+            max-width: 800px;
+            z-index: 2;
+        }
+        h1.hero-title {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            line-height: 1.1;
+        }
+        p.hero-subtitle {
+            font-size: 1.5rem;
+            margin-bottom: 40px;
+            color: #ccc;
+            font-family: var(--matrix-font);
+        }
+        .pill-container {
+            margin: 50px 0;
+            perspective: 1000px;
+        }
+        .main-pill {
+            width: 150px;
+            filter: drop-shadow(0 0 20px var(--orange-primary));
+            animation: float 6s ease-in-out infinite;
+            cursor: pointer;
+            transition: transform 0.5s;
+        }
+        .main-pill:hover {
+            transform: scale(1.1) rotate(5deg);
+            filter: drop-shadow(0 0 40px var(--orange-glow));
+        }
+
+        /* --- SECTIONS COMMON --- */
+        section {
+            padding: 100px 10%;
+            min-height: 80vh;
+            display: flex;
+            align-items: center;
+        }
+        .section-content {
+            opacity: 0;
+            transform: translateY(50px);
+            transition: all 0.8s ease-out;
+        }
+        .section-content.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* --- THE FIAT MATRIX SECTION --- */
+        #the-matrix {
+            background: linear-gradient(to bottom, var(--dark-bg), #110a00);
+        }
+        .matrix-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 50px;
+            align-items: center;
+        }
+        .fiat-lies h2 { font-size: 3rem; margin-bottom: 20px; }
+        .fiat-lies p { font-size: 1.2rem; line-height: 1.6; margin-bottom: 30px; color: #aaa; }
+        .glitch-container {
+            font-family: var(--matrix-font);
+            color: #ff3333; /* Red for bad fiat */
+            font-size: 1.5rem;
+            text-transform: uppercase;
+            position: relative;
+        }
+
+        /* --- THE ORANGE TRUTH SECTION --- */
+        #the-truth {
+            background: linear-gradient(to bottom, #110a00, var(--dark-bg));
+            text-align: center;
+        }
+        .truth-container h2 {
+            font-size: 3.5rem;
+            color: var(--orange-primary);
+            text-shadow: 0 0 20px rgba(255, 153, 0, 0.5);
+            margin-bottom: 30px;
+        }
+        .truth-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin-top: 50px;
+        }
+        .truth-card {
+            background: rgba(255, 153, 0, 0.05);
+            border: 1px solid var(--orange-primary);
+            padding: 30px;
+            border-radius: 10px;
+            transition: transform 0.3s;
+        }
+        .truth-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 30px rgba(255, 153, 0, 0.2);
+        }
+        .truth-card h3 { margin-bottom: 15px; color: var(--orange-primary); }
+
+        /* --- FOOTER --- */
+        footer {
+            background: var(--darker-bg);
+            padding: 50px 10%;
+            text-align: center;
+            border-top: 1px solid rgba(255, 153, 0, 0.2);
+        }
+        .footer-logo img { width: 50px; margin-bottom: 20px; }
+        .social-links {
+            margin: 30px 0;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+        .social-btn {
+            width: 50px; height: 50px;
+            border-radius: 50%;
+            border: 2px solid var(--orange-primary);
+            display: flex; justify-content: center; align-items: center;
+            color: var(--orange-primary);
+            text-decoration: none;
+            font-size: 1.5rem;
+            transition: all 0.3s;
+        }
+        .social-btn:hover {
+            background: var(--orange-primary);
+            color: var(--dark-bg);
+            box-shadow: 0 0 20px var(--orange-primary);
+        }
+
+        /* --- ANIMATIONS --- */
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.05); opacity: 1; }
+            100% { transform: scale(1); opacity: 0.8; }
+        }
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+            100% { transform: translateY(0px); }
+        }
+
+        /* --- RESPONSIVE --- */
+        @media (max-width: 768px) {
+            h1.hero-title { font-size: 2.5rem; }
+            .hero-subtitle { font-size: 1.1rem; }
+            .matrix-grid { grid-template-columns: 1fr; }
+            .fiat-lies h2 { font-size: 2rem; }
+            .nav-text { display: none; } /* Hide text on small mobile */
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <div id="preloader">
+        <img src="logo.png" alt="Orange Pill Logo" class="preloader-logo">
+        <div class="progress-container">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+        <div class="loading-text">INITIALIZING TRUTH PROTOCOL... <span id="progressPerc">0%</span></div>
+    </div>
+
+    <canvas id="matrix-canvas"></canvas>
+
+    <header>
+        <a href="#" class="nav-logo">
+            <img src="logo.png" alt="$PILL Logo">
+            <span class="nav-text highlight">$PILL</span>
+        </a>
+        <a href="https://luminex.gitbook.io/luminex/spark/features/launch" target="_blank" class="btn btn-glow">
+            BUY $PILL
+        </a>
+    </header>
+
+    <main>
+        <section id="hero">
+            <div class="hero-content">
+                <h1 class="hero-title">The Financial System is a <span class="highlight glitch-text">LIE</span>.</h1>
+                <p class="hero-subtitle">You've felt it your entire life. Something is wrong with the world. You don't know what it is, but it's there, like a splinter in your mind.</p>
+                
+                <div class="pill-container">
+                    <a href="#the-truth">
+                         <img src="logo.png" alt="Take the Orange Pill" class="main-pill">
+                    </a>
+                </div>
+
+                <h2 style="margin-bottom: 20px;">TAKE THE <span class="highlight">ORANGE PILL</span></h2>
+                <p style="max-width: 600px; margin: 0 auto 30px; color: #ccc;">Understanding Bitcoin is the only way to unplug from the matrix of traditional finance.</p>
+
+                <a href="https://luminex.gitbook.io/luminex/spark/features/launch" target="_blank" class="btn btn-glow" style="font-size: 1.2rem; padding: 15px 40px;">
+                    ENTER THE RABBIT HOLE
+                </a>
+            </div>
+        </section>
+
+        <section id="the-matrix">
+            <div class="section-content matrix-grid">
+                <div class="fiat-lies">
+                    <h2>The Fiat <span style="color: #ff3333;">Matrix</span></h2>
+                    <p>They tell you inflation is necessary. They tell you central banks protect you. It is a system of control designed to devalue your labor and keep you asleep at the wheel while they print infinity.</p>
+                    <p>It is the world that has been pulled over your eyes to blind you from the truth.</p>
+                    <div class="glitch-container">
+                        SYSTEM FAILURE DETECTED.<br>
+                        DEBT IS SLAVERY.
+                    </div>
+                </div>
+                <div style="text-align: center; font-family: var(--matrix-font); color: #ff3333; opacity: 0.6; font-size: 4rem; overflow: hidden; word-break: break-all;">
+                    $$$$ PRINT $$$$ DEBT $$$$ INFLATE $$$$ OBEY $$$$ CONSUME
+                </div>
+            </div>
+        </section>
+
+        <section id="the-truth">
+            <div class="section-content truth-container">
+                <h2>THE ORANGE TRUTH</h2>
+                <p style="max-width: 700px; margin: 0 auto 40px; font-size: 1.2rem;">$PILL is not just a token. It's a declaration of monetary independence. A reference to the moment you finally understood Bitcoin.</p>
+                
+                <div class="truth-grid">
+                    <div class="truth-card">
+                        <i class="fas fa-link highlight" style="font-size: 2rem; margin-bottom: 15px;"></i>
+                        <h3>Decentralized</h3>
+                        <p>No rulers. No central point of failure. Unstoppable code powering a new financial reality.</p>
+                    </div>
+                    <div class="truth-card">
+                        <i class="fas fa-shield-alt highlight" style="font-size: 2rem; margin-bottom: 15px;"></i>
+                        <h3>Immutable</h3>
+                        <p>The ledger cannot be forged. The truth cannot be edited by governments or banks.</p>
+                    </div>
+                    <div class="truth-card">
+                        <i class="fas fa-coins highlight" style="font-size: 2rem; margin-bottom: 15px;"></i>
+                        <h3>Sound Money</h3>
+                        <p>Fixed supply. The antidote to the poison of infinite fiat printing.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="footer-logo">
+            <img src="logo.png" alt="$PILL">
+            <h3 class="highlight">$PILL</h3>
+        </div>
+        <div class="social-links">
+            <a href="#" class="social-btn" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+            <a href="#" class="social-btn" aria-label="Telegram"><i class="fab fa-telegram-plane"></i></a>
+            <a href="#" class="social-btn" aria-label="Discord"><i class="fab fa-discord"></i></a>
+        </div>
+        <p style="color: #777; font-size: 0.9rem;">© 2024 Orange Pill. Are you ready to wake up?</p>
+        <p style="color: #555; font-size: 0.8rem; margin-top: 10px;">Launching on Luminex.</p>
+    </footer>
+
+
+    <script>
+        /* --- PRELOADER SCRIPT --- */
+        document.addEventListener("DOMContentLoaded", () => {
+            const preloader = document.getElementById('preloader');
+            const progressBar = document.getElementById('progressBar');
+            const progressPerc = document.getElementById('progressPerc');
+            let width = 1;
+            // Simulate loading time
+            const interval = setInterval(frame, 30);
+
+            function frame() {
+                if (width >= 100) {
+                    clearInterval(interval);
+                    // Hide preloader smoothly
+                    preloader.style.opacity = '0';
+                    preloader.style.visibility = 'hidden';
+                    // Start Matrix Rain after loading
+                    startMatrix();
+                } else {
+                    // Nonlinear loading speed for realism effect
+                    width += (Math.random() * 3); 
+                    if(width > 100) width = 100;
+                    progressBar.style.width = width + '%';
+                    progressPerc.innerHTML = Math.floor(width) + '%';
+                }
+            }
+        });
+
+        /* --- MATRIX RAIN CANVAS SCRIPT --- */
+        const canvas = document.getElementById('matrix-canvas');
+        const ctx = canvas.getContext('2d');
+
+        let width, height;
+        let columns;
+        let drops = [];
+
+        // Characters used in the rain (Katana + numbers + Bitcoin symbol)
+        const katakana = 'アカサタナハマヤラワガザダバパイキシチニヒミリギジヂビピウクスツヌフムユルグズヅブプエケセテネヘメレゲゼデベペオコソトノホモヨロゴゾドボポヴッン';
+        const latin = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789₿';
+        const alphabet = katakana + latin;
+
+        function resizeCanvas() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+            // Column width for the characters
+            const fontSize = 16; 
+            columns = Math.floor(width / fontSize);
+            // Reset drops
+            drops = [];
+            for (let i = 0; i < columns; i++) {
+                drops[i] = Math.random() * -100; // Start above screen randomly
+            }
+            ctx.font = fontSize + 'px monospace';
+        }
+
+        function drawMatrix() {
+            // Black BG for the canvas with very high transparency to create trail effect
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+            ctx.fillRect(0, 0, width, height);
+
+            ctx.fillStyle = '#FF9900'; // ORANGE text
+            
+            for (let i = 0; i < drops.length; i++) {
+                // Random character generator
+                const text = alphabet.charAt(Math.floor(Math.random() * alphabet.length));
+                // x = column index * font size, y = drop value
+                ctx.fillText(text, i * 16, drops[i] * 16);
+
+                // Reset drop to top randomly after it crosses bottom screen
+                if (drops[i] * 16 > height && Math.random() > 0.975) {
+                    drops[i] = 0;
+                }
+                // Increment y coordinate
+                drops[i]++;
+            }
+            requestAnimationFrame(drawMatrix);
+        }
+
+        // Initialize Matrix effect (called after preloader ends)
+        function startMatrix() {
+            resizeCanvas();
+            drawMatrix();
+        }
+
+        // Handle window resize for canvas
+        window.addEventListener('resize', resizeCanvas);
+
+
+        /* --- SCROLL OBSERVER (Scroll Animations) --- */
+        const sectionObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, { threshold: 0.2 }); // Trigger when 20% visible
+
+        // Target all elements with .section-content class
+        document.querySelectorAll('.section-content').forEach(section => {
+            sectionObserver.observe(section);
+        });
+
+        /* --- SIMPLE GLITCH EFFECT FUNCTION --- */
+        // Randomly glitch text occasionally
+        const glitchTexts = document.querySelectorAll('.glitch-text');
+        setInterval(() => {
+            glitchTexts.forEach(text => {
+                if(Math.random() > 0.8) {
+                    text.style.textShadow = `${Math.random()*10 - 5}px ${Math.random()*10 - 5}px 0px #ff3333, ${Math.random()*10 - 5}px ${Math.random()*10 - 5}px 0px blue`;
+                    setTimeout(() => {
+                        text.style.textShadow = 'none';
+                    }, 200);
+                }
+            });
+        }, 2000);
+
+    </script>
+</body>
+</html>
